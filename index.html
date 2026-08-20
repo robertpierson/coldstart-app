@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>coldstart - don't break the chain</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <a class="wordmark" href="./">cold<span>start</span></a>
+    <div class="topbar-right">
+      <span class="flame" id="topbar-streak" title="Current streak">0 day streak</span>
+      <button class="btn btn-primary" id="log-btn">+ Log outreach</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <aside class="profile">
+      <div class="avatar" id="avatar">?</div>
+      <h1 class="profile-name" id="profile-name"></h1>
+      <p class="profile-handle" id="profile-handle"></p>
+      <p class="profile-bio" id="profile-bio"></p>
+      <button class="btn btn-quiet" id="edit-profile-btn">Edit profile</button>
+
+      <dl class="stats">
+        <div><dt>Reach-outs</dt><dd id="stat-total">0</dd></div>
+        <div><dt>Current streak</dt><dd id="stat-streak">0</dd></div>
+        <div><dt>Longest streak</dt><dd id="stat-longest">0</dd></div>
+        <div><dt>Last 7 days</dt><dd id="stat-week">0</dd></div>
+      </dl>
+
+      <div class="danger-zone">
+        <button class="btn btn-quiet" id="demo-btn">Load demo data</button>
+        <button class="btn btn-quiet" id="reset-btn">Reset everything</button>
+      </div>
+    </aside>
+
+    <div class="content">
+      <section class="card">
+        <h2 class="card-title" id="graph-title">0 reach-outs in the last year</h2>
+        <div class="graph-scroll">
+          <div class="graph">
+            <div class="months" id="months"></div>
+            <div class="weekdays"><span></span><span>Mon</span><span></span><span>Wed</span><span></span><span>Fri</span><span></span></div>
+            <div class="squares" id="squares"></div>
+          </div>
+        </div>
+        <footer class="graph-footer">
+          <span class="hint">click any day to set its count</span>
+          <span class="legend">
+            Less
+            <i class="sq l0"></i><i class="sq l1"></i><i class="sq l2"></i><i class="sq l3"></i><i class="sq l4"></i>
+            More
+          </span>
+        </footer>
+      </section>
+
+      <section class="card">
+        <h2 class="card-title">Recent activity</h2>
+        <ul class="activity" id="activity"></ul>
+      </section>
+
+      <section class="card">
+        <h2 class="card-title">Who else is reaching out</h2>
+        <ol class="board" id="board"></ol>
+      </section>
+    </div>
+  </main>
+
+  <dialog id="profile-dialog">
+    <form method="dialog" id="profile-form">
+      <h2>Edit profile</h2>
+      <label for="profile-avatar-input">Profile picture</label>
+      <div class="avatar-picker">
+        <div class="avatar avatar-sm" id="avatar-preview">?</div>
+        <div class="avatar-picker-controls">
+          <input type="file" id="profile-avatar-input" accept="image/*" />
+          <button type="button" class="btn btn-quiet" id="avatar-clear">Remove photo</button>
+        </div>
+      </div>
+
+      <label for="profile-name-input">Display name</label>
+      <input type="text" id="profile-name-input" maxlength="60" required />
+      <label for="profile-handle-input">Username</label>
+      <input type="text" id="profile-handle-input" maxlength="20" placeholder="@yourhandle" />
+      <label for="profile-bio-input">Bio</label>
+      <input type="text" id="profile-bio-input" maxlength="160" placeholder="Founder. Sending cold DMs until someone says yes." />
+      <div class="dialog-actions">
+        <button class="btn btn-quiet" value="cancel" formnovalidate>Cancel</button>
+        <button class="btn btn-primary" value="save">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="log-dialog">
+    <form method="dialog" id="log-form">
+      <h2 id="dialog-title">Log outreach</h2>
+      <label for="log-count">How many cold reach-outs?</label>
+      <input type="number" id="log-count" min="0" max="500" value="1" required />
+      <label for="log-note">Who did you hit up? (optional)</label>
+      <input type="text" id="log-note" maxlength="140" placeholder="3 founders on LinkedIn, 2 cold emails" />
+      <div class="dialog-actions">
+        <button class="btn btn-quiet" value="cancel" formnovalidate>Cancel</button>
+        <button class="btn btn-primary" value="save" id="log-save">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
