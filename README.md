@@ -25,7 +25,7 @@ npm test
 | `index.html` | markup — profile, graph, activity, leaderboard, log + edit-profile dialogs |
 | `styles.css` | dark GitHub-ish theme |
 | `app.js` | state, storage and rendering |
-| `logic.js` | pure date/streak math, no DOM |
+| `logic.js` | pure date/streak, handle and crop math, no DOM |
 | `test.mjs` | asserts for the streak and grid math |
 
 ## How it works
