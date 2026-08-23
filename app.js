@@ -12,7 +12,11 @@ const DEFAULTS = {
 };
 
 const $ = (id) => document.getElementById(id);
-const today = new Date();
+
+// This tab can outlive the day it opened in. Everything below reads `today`
+// through this, so the graph, the streak and the + Log button all roll over
+// at midnight instead of writing into yesterday.
+let today = new Date();
 
 function load() {
   try {
@@ -135,8 +139,9 @@ function renderActivity() {
   }
 }
 
-// Fixed neighbours, so the board is never an empty room on day one.
-const OTHERS = seedUsers(today);
+// Fixed neighbours, so the board is never an empty room on day one. Their
+// histories are generated relative to today, so they are rebuilt on rollover.
+let OTHERS = seedUsers(today);
 
 function renderBoard() {
   const me = {
@@ -174,13 +179,31 @@ function renderBoard() {
   });
 }
 
+/** True when the clock has crossed into a new day since the last check. */
+function rolledOver() {
+  const now = new Date();
+  if (dayKey(now) === dayKey(today)) return false;
+  today = now;
+  OTHERS = seedUsers(now);
+  return true;
+}
+
 function render() {
+  rolledOver();
   renderProfile();
   renderStats();
   renderGraph();
   renderActivity();
   renderBoard();
 }
+
+// A tab left open overnight would otherwise still be pointing at yesterday.
+setInterval(() => {
+  if (rolledOver()) render();
+}, 60_000);
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && rolledOver()) render();
+});
 
 // --- profile ---
 
