@@ -1,4 +1,4 @@
-import { dayKey, parseKey, gridDays, level, currentStreak, longestStreak, total, thisWeek, seedUsers, demoDays, normalizeHandle, coverCrop } from './logic.js';
+import { dayKey, parseKey, gridDays, level, currentStreak, longestStreak, total, thisWeek, seedUsers, demoDays, normalizeHandle, coverCrop, sanitizeState } from './logic.js';
 
 const KEY = 'coldstart:v1';
 const DEFAULTS = {
@@ -16,9 +16,7 @@ const today = new Date();
 
 function load() {
   try {
-    const raw = JSON.parse(localStorage.getItem(KEY));
-    if (!raw || typeof raw !== 'object') return structuredClone(DEFAULTS);
-    return { profile: { ...DEFAULTS.profile, ...raw.profile }, days: raw.days || {} };
+    return sanitizeState(JSON.parse(localStorage.getItem(KEY)), DEFAULTS);
   } catch {
     return structuredClone(DEFAULTS); // corrupt or unreadable storage - start clean rather than crash
   }
@@ -274,6 +272,44 @@ dialog.addEventListener('close', () => {
   // 0 means "undo this day", not "a logged day of nothing"
   if (count > 0) state.days[key] = note ? { count, note } : { count };
   else delete state.days[key];
+  save();
+});
+
+// --- backup ---
+// The whole history lives in one browser's localStorage, so a file copy is the
+// only way out of it.
+
+$('export-btn').addEventListener('click', () => {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `coldstart-${dayKey(today)}.json`;
+  link.click();
+  URL.revokeObjectURL(url);
+});
+
+$('import-input').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  e.target.value = ''; // so picking the same file twice still fires
+
+  let incoming;
+  try {
+    incoming = sanitizeState(JSON.parse(await file.text()), DEFAULTS);
+  } catch {
+    alert('That file is not a coldstart export.');
+    return;
+  }
+
+  const mine = Object.keys(state.days).length;
+  const theirs = Object.keys(incoming.days).length;
+  const warning = mine
+    ? `Replace your profile and ${plural(mine, 'logged day')} with ${plural(theirs, 'day')} from this file?`
+    : `Import ${plural(theirs, 'logged day')} and the profile from this file?`;
+  if (!confirm(warning)) return;
+
+  state = incoming;
   save();
 });
 

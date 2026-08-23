@@ -139,6 +139,7 @@ body {
 .stats dt { font-size: 12px; color: var(--muted); }
 .stats dd { margin: 0; font-size: 20px; font-weight: 600; }
 
+.danger-zone label.btn { display: inline-block; }
 .danger-zone {
   margin-top: 16px;
   padding-top: 12px;

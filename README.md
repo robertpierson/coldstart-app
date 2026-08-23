@@ -30,6 +30,9 @@ npm test
 
 ## How it works
 
+- **Export data** writes your whole history to a JSON file; **Import data** reads one back,
+  which is the only way to move between browsers or survive a cache wipe. Imported files are
+  validated before anything is stored.
 - Everything lives in `localStorage` under `coldstart:v1` - profile picture included, stored as a
   128px JPEG data URL (a couple of KB), not the original file — this is a local prototype, so there is
   no server and no account. Clearing browser data clears your history.

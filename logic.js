@@ -169,3 +169,39 @@ export function coverCrop(width, height) {
   const side = Math.min(width, height);
   return { sx: (width - side) / 2, sy: (height - side) / 2, side };
 }
+
+const DAY_KEY_RE = /^\d{4}-\d{2}-\d{2}$/;
+const text = (value, fallback, max) => (typeof value === 'string' ? value.trim().slice(0, max) : fallback);
+
+/**
+ * Trust boundary for anything coming out of localStorage or an imported file:
+ * keep only well-formed days and profile fields so a bad file cannot wedge the UI.
+ * The avatar must be a data: image - a stray javascript: URL would otherwise land
+ * straight in a CSS url().
+ */
+export function sanitizeState(raw, defaults) {
+  const src = raw && typeof raw === 'object' ? raw : {};
+  const profile = src.profile && typeof src.profile === 'object' ? src.profile : {};
+  const rawDays = src.days && typeof src.days === 'object' ? src.days : {};
+  const days = {};
+
+  for (const [key, entry] of Object.entries(rawDays)) {
+    if (!DAY_KEY_RE.test(key) || !entry || typeof entry !== 'object') continue;
+    const count = Math.floor(Number(entry.count));
+    if (!Number.isFinite(count) || count <= 0) continue;
+    days[key] = { count: Math.min(count, 500) };
+    const note = text(entry.note, '', 140);
+    if (note) days[key].note = note;
+  }
+
+  const avatar = text(profile.avatar, '', 4_000_000);
+  return {
+    profile: {
+      name: text(profile.name, '', 60) || defaults.profile.name,
+      handle: normalizeHandle(text(profile.handle, defaults.profile.handle, 20)),
+      bio: text(profile.bio, defaults.profile.bio, 160),
+      avatar: avatar.startsWith('data:image/') ? avatar : '',
+    },
+    days,
+  };
+}

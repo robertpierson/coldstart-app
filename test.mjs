@@ -1,6 +1,6 @@
 // Run: node test.mjs
 import assert from 'node:assert/strict';
-import { dayKey, addDays, gridDays, level, currentStreak, longestStreak, total, thisWeek, seedUsers, normalizeHandle, coverCrop } from './logic.js';
+import { dayKey, addDays, gridDays, level, currentStreak, longestStreak, total, thisWeek, seedUsers, normalizeHandle, coverCrop, sanitizeState } from './logic.js';
 
 const today = new Date(2026, 7, 18); // 18 Aug 2026, a Tuesday
 const key = (n) => dayKey(addDays(today, n));
@@ -60,4 +60,25 @@ assert.deepEqual(coverCrop(200, 100), { sx: 50, sy: 0, side: 100 });
 assert.deepEqual(coverCrop(100, 400), { sx: 0, sy: 150, side: 100 });
 assert.deepEqual(coverCrop(64, 64), { sx: 0, sy: 0, side: 64 });
 
+
+// --- sanitizeState: untrusted storage and imported files ---
+const DEFAULTS = { profile: { name: 'Your Name', handle: 'you', bio: 'Founder.', avatar: '' }, days: {} };
+const clean = (raw) => sanitizeState(raw, DEFAULTS);
+
+assert.deepEqual(clean(null), DEFAULTS, 'garbage in, defaults out');
+assert.deepEqual(clean('nope'), DEFAULTS);
+assert.deepEqual(clean({ days: { 'not-a-date': { count: 3 }, '2026-08-18': { count: 3 } } }).days, {
+  '2026-08-18': { count: 3 },
+});
+assert.deepEqual(clean({ days: { '2026-08-18': { count: '4' } } }).days, { '2026-08-18': { count: 4 } });
+assert.deepEqual(clean({ days: { '2026-08-18': { count: 9e9 } } }).days, { '2026-08-18': { count: 500 } });
+assert.deepEqual(clean({ days: { '2026-08-18': { count: 0 }, '2026-08-17': { count: 'x' } } }).days, {});
+assert.equal(clean({ days: { '2026-08-18': { count: 2, note: ' hi ' } } }).days['2026-08-18'].note, 'hi');
+// a javascript: URL must never reach the avatar CSS url()
+assert.equal(clean({ profile: { avatar: 'javascript:alert(1)' } }).profile.avatar, '');
+assert.equal(clean({ profile: { avatar: 'data:image/jpeg;base64,AAA' } }).profile.avatar, 'data:image/jpeg;base64,AAA');
+assert.equal(clean({ profile: { name: '   ' } }).profile.name, 'Your Name', 'blank name falls back');
+assert.equal(clean({ profile: { handle: '@Maya Osei' } }).profile.handle, 'maya-osei');
+assert.equal(clean({ profile: { bio: '' } }).profile.bio, '', 'a deliberately cleared bio stays cleared');
+assert.equal(clean({ profile: { name: 'x'.repeat(200) } }).profile.name.length, 60);
 console.log('ok - all checks passed');
