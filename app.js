@@ -76,6 +76,11 @@ function renderGraph() {
   const cells = gridDays(today, 53);
   const squares = $('squares');
   const months = $('months');
+  const scroller = $('graph-scroll');
+  // A fresh graph opens on a year ago, which is the least interesting end of it.
+  // Stay pinned to today unless the reader has scrolled back to look at history.
+  const atEnd = scroller.scrollLeft >= scroller.scrollWidth - scroller.clientWidth - 1;
+  const keep = scroller.scrollLeft;
   squares.replaceChildren();
   months.replaceChildren();
 
@@ -104,6 +109,7 @@ function renderGraph() {
     }
   }
 
+  scroller.scrollLeft = atEnd ? scroller.scrollWidth : keep;
   $('graph-title').textContent = `${plural(shown, 'reach-out')} in the last year`;
 }
 
