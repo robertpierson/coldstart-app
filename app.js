@@ -97,6 +97,9 @@ function renderGraph() {
     sq.dataset.key = cell.key;
     sq.className = `sq l${level(count)}${cell.key === todayKey ? ' today' : ''}`;
     sq.title = `${count ? plural(count, 'reach-out') : 'No reach-outs'} on ${fmtDay(cell.date)}`;
+    sq.setAttribute('aria-label', sq.title); // title alone is not announced reliably
+    // roving tabindex: 371 squares must not be 371 stops on the way to the footer
+    sq.tabIndex = cell.key === todayKey ? 0 : -1;
     squares.append(sq);
 
     // month label sits over the first column that starts a new month
@@ -291,6 +294,28 @@ $('log-btn').addEventListener('click', () => openLog(dayKey(today), { bump: true
 $('squares').addEventListener('click', (e) => {
   const sq = e.target.closest('button.sq');
   if (sq) openLog(sq.dataset.key);
+});
+
+// Columns are weeks and rows are weekdays, so up/down is a day and left/right a week.
+const STEP = { ArrowUp: -1, ArrowDown: 1, ArrowLeft: -7, ArrowRight: 7 };
+
+$('squares').addEventListener('keydown', (e) => {
+  const sq = e.target.closest('button.sq');
+  if (!sq) return;
+
+  const all = [...$('squares').children];
+  const from = all.indexOf(sq);
+  let to;
+  if (e.key in STEP) to = from + STEP[e.key];
+  else if (e.key === 'Home') to = 0;
+  else if (e.key === 'End') to = all.length - 1;
+  else return;
+
+  e.preventDefault();
+  const next = all[Math.min(Math.max(to, 0), all.length - 1)];
+  sq.tabIndex = -1;
+  next.tabIndex = 0;
+  next.focus();
 });
 
 dialog.addEventListener('close', () => {
