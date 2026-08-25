@@ -1,5 +1,6 @@
 // Run: node test.mjs
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import { dayKey, addDays, gridDays, level, currentStreak, longestStreak, total, thisWeek, seedUsers, normalizeHandle, coverCrop, sanitizeState } from './logic.js';
 
 const today = new Date(2026, 7, 18); // 18 Aug 2026, a Tuesday
@@ -81,4 +82,25 @@ assert.equal(clean({ profile: { name: '   ' } }).profile.name, 'Your Name', 'bla
 assert.equal(clean({ profile: { handle: '@Maya Osei' } }).profile.handle, 'maya-osei');
 assert.equal(clean({ profile: { bio: '' } }).profile.bio, '', 'a deliberately cleared bio stays cleared');
 assert.equal(clean({ profile: { name: 'x'.repeat(200) } }).profile.name.length, 60);
+
+// Streaks must survive a daylight-saving change. Run in a DST timezone, since
+// the machine running the suite may not have one: 8 Mar 2026 is 23 hours long
+// in New York and 25 Oct 2026 is 25 hours long in London.
+{
+  const check = `
+    import { longestStreak } from './logic.js';
+    const chain = (keys) => Object.fromEntries(keys.map((k) => [k, { count: 1 }]));
+    const spring = chain(['2026-03-06', '2026-03-07', '2026-03-08', '2026-03-09']);
+    const fall = chain(['2026-10-23', '2026-10-24', '2026-10-25', '2026-10-26']);
+    if (longestStreak(spring) !== 4) throw new Error('spring-forward broke the chain: ' + longestStreak(spring));
+    if (longestStreak(fall) !== 4) throw new Error('fall-back broke the chain: ' + longestStreak(fall));
+  `;
+  for (const tz of ['America/New_York', 'Europe/London']) {
+    execFileSync(process.execPath, ['--input-type=module', '--eval', check], {
+      cwd: import.meta.dirname,
+      env: { ...process.env, TZ: tz },
+      stdio: 'pipe',
+    });
+  }
+}
 console.log('ok - all checks passed');

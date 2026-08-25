@@ -74,9 +74,10 @@ export function longestStreak(days) {
   let run = 0;
   let prev = null;
   for (const key of keys) {
-    const date = parseKey(key);
-    run = prev && date - prev === DAY_MS ? run + 1 : 1;
-    prev = date;
+    // Not `date - prev === DAY_MS`: the day a clock springs forward is 23 hours
+    // long, so timestamp arithmetic breaks a chain that never actually broke.
+    run = prev && dayKey(addDays(prev, 1)) === key ? run + 1 : 1;
+    prev = parseKey(key);
     if (run > best) best = run;
   }
   return best;
