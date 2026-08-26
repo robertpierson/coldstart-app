@@ -67,9 +67,18 @@ function renderStats() {
   $('stat-longest').textContent = longestStreak(state.days);
   $('stat-week').textContent = thisWeek(state.days, today);
 
+  // A streak survives an unlogged today, which is exactly when it needs saying:
+  // the chain is alive but nothing has been sent yet.
+  const loggedToday = ((state.days[dayKey(today)] || {}).count || 0) > 0;
+  const atRisk = streak > 0 && !loggedToday;
+
   const flame = $('topbar-streak');
-  flame.textContent = streak ? `${plural(streak, 'day')} streak` : 'no streak yet - send one today';
-  flame.classList.toggle('hot', streak > 0);
+  if (!streak) flame.textContent = 'no streak yet - send one today';
+  else if (atRisk) flame.textContent = `${plural(streak, 'day')} streak - nothing logged today`;
+  else flame.textContent = `${plural(streak, 'day')} streak`;
+  flame.title = atRisk ? 'Send one today or the chain breaks at midnight' : 'Current streak';
+  flame.classList.toggle('hot', streak > 0 && loggedToday);
+  flame.classList.toggle('at-risk', atRisk);
 }
 
 function renderGraph() {

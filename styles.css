@@ -52,6 +52,7 @@ body {
   white-space: nowrap;
 }
 .flame.hot { color: #ffa657; font-weight: 600; }
+.flame.at-risk { color: #f85149; font-weight: 600; }
 
 /* --- buttons --- */
 .btn {
