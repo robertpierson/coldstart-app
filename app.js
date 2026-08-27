@@ -379,6 +379,15 @@ $('import-input').addEventListener('change', async (e) => {
 });
 
 $('demo-btn').addEventListener('click', () => {
+  // Fake days are stored exactly like real ones, so once they are mixed in there
+  // is no telling them apart and no undo. Anyone with a real history gets asked.
+  const mine = Object.keys(state.days).length;
+  if (mine && !confirm(
+    `Fill your empty days with fake sample outreach?\n\n` +
+    `Your ${plural(mine, 'logged day')} are kept, but the fake days cannot be told apart or removed ` +
+    `afterwards. Export first if this history matters.`,
+  )) return;
+
   state.days = { ...demoDays(today), ...state.days }; // never overwrite real entries with fake ones
   save();
 });
