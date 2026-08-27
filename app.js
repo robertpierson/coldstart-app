@@ -41,6 +41,8 @@ function save() {
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const fmtDay = (date) => `${MONTHS[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
 const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
+// "3 days streak" reads like a typo - the thing being counted is the streak.
+const streakLabel = (n) => `${n}-day streak`;
 
 function initials(name) {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -74,8 +76,8 @@ function renderStats() {
 
   const flame = $('topbar-streak');
   if (!streak) flame.textContent = 'no streak yet - send one today';
-  else if (atRisk) flame.textContent = `${plural(streak, 'day')} streak - nothing logged today`;
-  else flame.textContent = `${plural(streak, 'day')} streak`;
+  else if (atRisk) flame.textContent = `${streakLabel(streak)} - nothing logged today`;
+  else flame.textContent = streakLabel(streak);
   flame.title = atRisk ? 'Send one today or the chain breaks at midnight' : 'Current streak';
   flame.classList.toggle('hot', streak > 0 && loggedToday);
   flame.classList.toggle('at-risk', atRisk);
@@ -190,7 +192,7 @@ function renderBoard() {
 
     const streak = document.createElement('span');
     streak.className = 'streak';
-    streak.textContent = row.streak ? `${plural(row.streak, 'day')} streak` : 'chain broken';
+    streak.textContent = row.streak ? streakLabel(row.streak) : 'chain broken';
 
     li.append(rank, who, streak);
     list.append(li);
