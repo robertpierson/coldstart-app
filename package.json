@@ -1,6 +1,6 @@
 {
   "name": "coldstart",
-  "version": "0.1.1649",
+  "version": "0.1.1650",
   "private": true,
   "description": "GitHub-style contribution graph for cold outreach",
   "type": "module",
